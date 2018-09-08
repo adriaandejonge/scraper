@@ -15,7 +15,7 @@ const path string = "./output"
 func getEl(c *colly.Collector, el string, attr string) {
 	c.OnHTML(el+"["+attr+"]", func(e *colly.HTMLElement) {
 		link := e.Attr(attr)
-		
+
 		// Only relative URLs; no domain switches
 		// Note that this way hardcoded domains get ignored
 		if len(link) > 1 && link[:1] == "/" {
@@ -25,12 +25,6 @@ func getEl(c *colly.Collector, el string, attr string) {
 	})
 }
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func storeContent(body []byte, file string) {
 	fullPath := path + file
 	pos := strings.LastIndex(fullPath, "/")
@@ -38,15 +32,20 @@ func storeContent(body []byte, file string) {
 
 	os.MkdirAll(folderPath, os.ModePerm)
 
-	fi, err := os.Lstat(fullPath)
+	if _, err := os.Stat(fullPath); err != nil {
+		if !os.IsNotExist(err) {
+			fullPath = fullPath + "/index.html"
+		}
+	}
 
-	if err != os.ErrNotExist && fi.Mode().IsDir() {
-		// ASSUMPTION: HTML content
+	if fullPath[len(fullPath)-1:] == "/" {
 		fullPath = fullPath + "/index.html"
 	}
 
-	err = ioutil.WriteFile(fullPath, body, 0644)
-	check(err)
+	err := ioutil.WriteFile(fullPath, body, 0644)
+	if err != nil {
+		fmt.Println("Error writing file " + fullPath)
+	}
 }
 
 func main() {
