@@ -15,9 +15,9 @@ const path string = "./output"
 func getEl(c *colly.Collector, el string, attr string) {
 	c.OnHTML(el+"["+attr+"]", func(e *colly.HTMLElement) {
 		link := e.Attr(attr)
-
-		fmt.Println("   "+el, link)
-
+		
+		// Only relative URLs; no domain switches
+		// Note that this way hardcoded domains get ignored
 		if len(link) > 1 && link[:1] == "/" {
 			e.Request.Visit(link)
 		}
@@ -39,10 +39,9 @@ func storeContent(body []byte, file string) {
 	os.MkdirAll(folderPath, os.ModePerm)
 
 	fi, err := os.Lstat(fullPath)
-	//check(err)
 
 	if err != os.ErrNotExist && fi.Mode().IsDir() {
-		// ASSUMPTION: .html
+		// ASSUMPTION: HTML content
 		fullPath = fullPath + "/index.html"
 	}
 
@@ -73,13 +72,9 @@ func main() {
 		if r.StatusCode == 200 {
 			file := r.Request.URL.EscapedPath()
 
-			// if file[len(file)-1:] == "/" {
-			// 	file = file + "index.html"
-			// }
 			storeContent(r.Body, file)
 			fmt.Println("response received", file)
 		}
-
 	})
 
 	c.Visit("https://www.singtel.com/")
