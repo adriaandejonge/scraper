@@ -55,7 +55,7 @@ func main() {
 	)
 
 	c.Limit(&colly.LimitRule{
-		Parallelism: 2,
+		Parallelism: 1,
 		Delay:       500 * time.Millisecond,
 	})
 
