@@ -27,24 +27,21 @@ func getEl(c *colly.Collector, el string, attr string) {
 
 func storeContent(body []byte, file string) {
 	fullPath := path + file
+
+	if fullPath[len(fullPath)-1:] == "/" || file == "" {
+		fullPath = fullPath + "/index.html"
+	}
+
 	pos := strings.LastIndex(fullPath, "/")
 	folderPath := fullPath[:pos]
 
 	os.MkdirAll(folderPath, os.ModePerm)
 
-	if _, err := os.Stat(fullPath); err != nil {
-		if !os.IsNotExist(err) {
-			fullPath = fullPath + "/index.html"
-		}
-	}
-
-	if fullPath[len(fullPath)-1:] == "/" {
-		fullPath = fullPath + "/index.html"
-	}
-
 	err := ioutil.WriteFile(fullPath, body, 0644)
 	if err != nil {
 		fmt.Println("Error writing file " + fullPath)
+	} else {
+		fmt.Println("Stored " + fullPath)
 	}
 }
 
@@ -72,9 +69,13 @@ func main() {
 			file := r.Request.URL.EscapedPath()
 
 			storeContent(r.Body, file)
-			fmt.Println("response received", file)
 		}
 	})
 
-	c.Visit("https://www.singtel.com/")
+	if len(os.Args) <= 1 {
+		fmt.Println("Please provide the URL as a command line argument")
+	} else {
+		// To do: Some additional input validation would help
+		c.Visit(os.Args[1])
+	}
 }
