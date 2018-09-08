@@ -12,7 +12,7 @@ import (
 
 const path string = "./output"
 
-func getEl(c *colly.Collector, el string, attr string) {
+func findUrls(c *colly.Collector, el string, attr string) {
 	c.OnHTML(el+"["+attr+"]", func(e *colly.HTMLElement) {
 		link := e.Attr(attr)
 
@@ -55,10 +55,10 @@ func main() {
 		Delay:       500 * time.Millisecond,
 	})
 
-	getEl(c, "a", "href")
-	getEl(c, "img", "src")
-	getEl(c, "script", "src")
-	getEl(c, "link", "href")
+	findUrls(c, "a", "href")
+	findUrls(c, "img", "src")
+	findUrls(c, "script", "src")
+	findUrls(c, "link", "href")
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("VISITING ", r.URL)
